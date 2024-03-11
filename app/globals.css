@@ -5,7 +5,8 @@
 @layer components {
   /* main */
   .main-container {
-    @apply flex min-h-screen flex-1 flex-col items-center bg-dark-1 px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
+    @apply
+    flex min-h-screen flex-1 flex-col items-center bg-dark-1 px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
   }
 
   .head-text {
@@ -31,8 +32,8 @@
     @apply rounded-lg bg-primary-500 px-5 py-1.5 text-small-regular !text-light-1 !important;
   }
 
-  /* thread card  */
-  .thread-card_bar {
+  /* post card  */
+  .post-card_bar {
     @apply relative mt-2 w-0.5 grow rounded-full bg-neutral-800;
   }
 
