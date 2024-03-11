@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import * as z from "zod";
 import {UserValidation} from "@/lib/validations/users";
 import Image from "next/image";
-import {ChangeEvent} from "react";
+import {ChangeEvent, useState} from "react";
 import {Textarea} from "@/components/ui/textarea";
 
 interface Props {
@@ -32,7 +32,7 @@ interface Props {
 }
 
 const AccountProfile = ({user, btnTitle}: Props) => {
-
+    const [files, setFiles] = useState<File[]>([])
     const form = useForm({
         resolver: zodResolver(UserValidation),
         defaultValues: {
@@ -48,6 +48,8 @@ const AccountProfile = ({user, btnTitle}: Props) => {
         fieldChange: (value: string) => void
     ) => {
         e.preventDefault();
+
+        const  fileReader = new FileReader();
 
     };
 
@@ -96,6 +98,26 @@ const AccountProfile = ({user, btnTitle}: Props) => {
                                     onChange={(e) => handleImage(e, field.onChange)}
                                 />
                             </FormControl>
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name='name'
+                    render={({ field }) => (
+                        <FormItem className='flex w-full flex-col gap-3'>
+                            <FormLabel className='text-base-semibold text-light-2'>
+                                Name
+                            </FormLabel>
+                            <FormControl>
+                                <Input
+                                    type='text'
+                                    className='account-form_input no-focus'
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
