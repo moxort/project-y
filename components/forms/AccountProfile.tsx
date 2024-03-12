@@ -107,7 +107,8 @@ const AccountProfile = ({user, btnTitle}: Props) => {
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col justify-start gap-10">
+                className="flex flex-col justify-start gap-10"
+            >
                 <FormField
                     control={form.control}
                     name="profile_photo"
@@ -205,10 +206,7 @@ const AccountProfile = ({user, btnTitle}: Props) => {
                         </FormItem>
                     )}
                 />
-
-
-
-                <Button type="submit" className="bg-primary-500">Submit</Button>
+                <Button type="submit" className="bg-pink-900">Submit</Button>
             </form>
         </Form>
     )
