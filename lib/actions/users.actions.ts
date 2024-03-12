@@ -13,14 +13,14 @@ interface Params {
     path: string;
 }
 
-export async function updateUser(
-    userId: string,
-    username: string,
-    name: string,
-    bio: string,
-    image: string,
-    path: string,
-): Promise<void>{
+export async function updateUser({
+ userId,
+ username,
+ name,
+ bio,
+ image,
+ path,
+}: Params): Promise<void>{
     await connectToDB();
 
     try {

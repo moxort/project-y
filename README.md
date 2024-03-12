@@ -47,9 +47,17 @@ and save it somewhere.
 Go to .env.local you created earlier and add new value and paste your link like this:
 
 ```bash
-MONGODB_URL=mongodb+srv://(your_logind):<password>........
+MONGODB_URL=mongodb+srv://(your_login):<password>........
 ```
 and then replace <password> with password you set up earlier
+
+### Uploadthing configuration
+Go to https://uploadthing.com and click "Get Started", log in/sign in with your github account and create new project. Then, for that project, go to API Keys and copy keys from "Quick Copy" and paste them into .env.local we created earlier
+They should look like this:
+```bash
+UPLOADTHING_SECRET=sk_live_<...>
+UPLOADTHING_APP_ID=<...>
+```
 Then run the development server:
 
 ```bash
