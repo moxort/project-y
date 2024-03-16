@@ -4,6 +4,8 @@ import {connectToDB} from "@/lib/mongoose";
 import Post from "@/lib/models/post.model";
 import User from "@/lib/models/user.model";
 import {revalidatePath} from "next/cache";
+import {Simulate} from "react-dom/test-utils";
+import error = Simulate.error;
 
 interface PostParams{
     text: string,
@@ -98,5 +100,34 @@ export async function fetchPostById(postId: string) {
     } catch (err) {
         console.error("Error while fetching Post:", err);
         throw new Error("Unable to fetch Post");
+    }
+}
+
+export async function addCommentToPost(postId: string, commentText: string, userId: string, path: string){
+    connectToDB();
+    
+    try {
+        const originalPost = await Post.findById(postId);
+        console.log(originalPost)
+        if (!originalPost) {
+            throw new Error("Post not found");
+        }
+
+
+        const commentPost = new Post({
+            text: commentText,
+            author: userId,
+            parentId: postId, // Set the parentId to the original post's ID
+        });
+
+        const savedCommentPost = await commentPost.save();
+
+        originalPost.children.push(savedCommentPost._id)
+
+        await originalPost.save();
+
+        revalidatePath(path);
+    } catch (e: any) {
+        throw new Error(`Error adding comment to post: ${e.message}`)
     }
 }
