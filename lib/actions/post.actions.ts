@@ -61,3 +61,42 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
     return { posts, isNext}
 
 }
+
+export async function fetchPostById(postId: string) {
+    connectToDB();
+
+    try {
+        const post = await Post.findById(postId)
+            .populate({
+                path: "author",
+                model: User,
+                select: "_id id name image",
+            }) // Populate the author field with _id and username
+            // TODO add communities
+            .populate({
+                path: "children", // Populate the children field
+                populate: [
+                    {
+                        path: "author", // Populate the author field within children
+                        model: User,
+                        select: "_id id name parentId image", // Select only _id and username fields of the author
+                    },
+                    {
+                        path: "children", // Populate the children field within children
+                        model: Post, // The model of the nested children (assuming it's the same "Post" model)
+                        populate: {
+                            path: "author", // Populate the author field within nested children
+                            model: User,
+                            select: "_id id name parentId image", // Select only _id and username fields of the author
+                        },
+                    },
+                ],
+            })
+            .exec();
+
+        return post;
+    } catch (err) {
+        console.error("Error while fetching Post:", err);
+        throw new Error("Unable to fetch Post");
+    }
+}

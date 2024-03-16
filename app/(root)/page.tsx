@@ -1,6 +1,5 @@
 import {currentUser, UserButton} from "@clerk/nextjs";
 import {fetchPosts} from "@/lib/actions/post.actions";
-import {User} from "@clerk/backend";
 import PostCard from "@/components/cards/PostCard";
 
 export default async function Home() {
