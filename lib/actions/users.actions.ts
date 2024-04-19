@@ -4,6 +4,7 @@ import {connectToDB} from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
 import {revalidatePath} from "next/cache";
 import Post from "@/lib/models/post.model";
+import {FilterQuery, SortOrder} from "mongoose";
 
 interface Params {
     userId: string;
@@ -89,6 +90,59 @@ export async function fetchUserPosts(userId: string) {
         return posts;
     } catch (error) {
         console.error("Error fetching user threads:", error);
+        throw error;
+    }
+}
+
+export async function fetchUsers({
+                                     userId,
+                                     searchString = "",
+                                     pageNumber = 1,
+                                     pageSize = 20,
+                                     sortBy = "desc",
+                                 }: {
+    userId: string;
+    searchString?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: SortOrder;
+}) {
+    try {
+        connectToDB();
+
+        const skipAmount = (pageNumber - 1) * pageSize;
+
+        const regex = new RegExp(searchString, "i");
+
+        const query: FilterQuery<typeof User> = {
+            id: { $ne: userId }, // exclude the current user from the results.
+        };
+
+        if (searchString.trim() !== "") {
+            query.$or = [
+                { username: { $regex: regex } },
+                { name: { $regex: regex } },
+            ];
+        }
+
+        const sortOptions = { createdAt: sortBy };
+
+        const usersQuery = User.find(query)
+            .sort(sortOptions)
+            .skip(skipAmount)
+            .limit(pageSize);
+
+
+        const totalUsersCount = await User.countDocuments(query);
+
+        const users = await usersQuery.exec();
+
+        //are more users beyond the current page.
+        const isNext = totalUsersCount > skipAmount + users.length;
+
+        return { users, isNext };
+    } catch (error) {
+        console.error("Error fetching users:", error);
         throw error;
     }
 }
