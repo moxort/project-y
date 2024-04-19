@@ -73,7 +73,7 @@ export async function fetchPostById(postId: string) {
                 path: "author",
                 model: User,
                 select: "_id id name image",
-            }) // Populate the author field with _id and username
+            })
             // TODO add communities
             .populate({
                 path: "children", // Populate the children field
