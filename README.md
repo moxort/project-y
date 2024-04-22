@@ -66,3 +66,6 @@ npm run dev
 
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+I used this code from Clerk documentation: https://github.com/perkinsjr/Clerk-App-Router-Webhooks/blob/main/src/app/api/webhook/route.ts
+to implement my webhooks.
