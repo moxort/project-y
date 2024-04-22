@@ -183,7 +183,7 @@ export async function deletePost(id: string, path: string): Promise<void> {
         // Get all descendant post IDs including the main post ID and child post IDs
         const descendantPostIds = [
             id,
-            ...descendantPosts.map((thread) => thread._id),
+            ...descendantPosts.map((post) => post._id),
         ];
 
         // Extract the authorIds and communityIds to update User and Community models respectively
@@ -207,7 +207,7 @@ export async function deletePost(id: string, path: string): Promise<void> {
         // Update User model
         await User.updateMany(
             { _id: { $in: Array.from(uniqueAuthorIds) } },
-            { $pull: { threads: { $in: descendantPostIds } } }
+            { $pull: { posts: { $in: descendantPostIds } } }
         );
 
         // Update Community model
@@ -218,6 +218,6 @@ export async function deletePost(id: string, path: string): Promise<void> {
 
         revalidatePath(path);
     } catch (error: any) {
-        throw new Error(`Failed to delete thread: ${error.message}`);
+        throw new Error(`Failed to delete post: ${error.message}`);
     }
 }

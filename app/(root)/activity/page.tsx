@@ -13,6 +13,8 @@ async function Page() {
     if (!userInfo?.onboarded) redirect("/onboarding");
 
     const activity = await getActivity(userInfo._id)
+
+    console.log("ACTIVITY", activity)
     return (
         <section>
             <h1 className="head-text mb-10">Activity</h1>
@@ -42,7 +44,7 @@ async function Page() {
                             </Link>
                         ))}
                     </>
-                ) : <p>No activity yet</p>}
+                ) : <p className='!text-base-regular text-light-3'>No activity yet</p>}
             </section>
         </section>
     )

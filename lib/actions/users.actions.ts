@@ -90,7 +90,7 @@ export async function fetchUserPosts(userId: string) {
         });
         return posts;
     } catch (error) {
-        console.error("Error fetching user threads:", error);
+        console.error("Error fetching user posts:", error);
         throw error;
     }
 }

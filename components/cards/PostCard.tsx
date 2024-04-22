@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import {formatDateString} from "@/lib/utils";
+import DeletePost from "@/components/forms/DeletePost";
 
 interface PostCardParams{
     id: string;
@@ -105,7 +106,13 @@ const PostCard = ({
                         </div>
                     </div>
                 </div>
-                {/*TODO: DeletePost*/}
+                <DeletePost
+                    postId={JSON.stringify(id)}
+                    currentUserId={currentUserId}
+                    authorId={author.id}
+                    parentId={parentId}
+                    isComment={isComment}
+                />
                 {/*TODO: Show comment logos*/}
 
 
