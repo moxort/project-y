@@ -37,10 +37,10 @@ function CreatePost({userId}: {userId: string}){
          await createPost({
             text: values.post,
             author: userId,
-            communityId: null,
+            communityId: organization ? organization.id : null,
             path: pathname,
         });
-          router.push("/")
+          // router.push("/")
     };
     return (
         <Form {...form}>

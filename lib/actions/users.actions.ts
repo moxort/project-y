@@ -5,6 +5,7 @@ import User from "@/lib/models/user.model";
 import {revalidatePath} from "next/cache";
 import Post from "@/lib/models/post.model";
 import {FilterQuery, SortOrder} from "mongoose";
+import Community from "@/lib/models/community.model";
 
 interface Params {
     userId: string;
@@ -53,10 +54,10 @@ export async function fetchUser(userId: string) {
         connectToDB();
 
         return await User.findOne({ id: userId })
-        //     .populate({
-        //     path: "communities",
-        //     model: Community,
-        // });
+            .populate({
+            path: "communities",
+            model: Community,
+        });
     } catch (error: any) {
         throw new Error(`Failed to fetch user: ${error.message}`);
     }
@@ -66,16 +67,16 @@ export async function fetchUserPosts(userId: string) {
     try {
         connectToDB();
 
-        // Find all threads authored by the user with the given userId
+        // Find all posts authored by the user with the given userId
         const posts = await User.findOne({ id: userId }).populate({
             path: "posts",
             model: Post,
             populate: [
-                // {
-                //     path: "community",
-                //     model: Community,
-                //     select: "name id image _id", // Select the "name" and "_id" fields from the "Community" model
-                // },
+                {
+                    path: "community",
+                    model: Community,
+                    select: "name id image _id", // Select the "name" and "_id" fields from the "Community" model
+                },
                 {
                     path: "children",
                     model: Post,
@@ -152,7 +153,6 @@ export async function getActivity(userId: string) {
         connectToDB();
 
         const userPosts = await Post.find({author: userId});
-        console.log(userPosts)
 
         const childPostIds = userPosts.reduce((acc, userPost) => {
             return acc.concat(userPost.children)
@@ -160,7 +160,7 @@ export async function getActivity(userId: string) {
 
         const replies = await Post.find({
             _id: { $in: childPostIds },
-            author: { $ne: userId }, // Exclude threads authored by the same user
+            author: { $ne: userId }, // Exclude posts authored by the same user
         }).populate({
             path: "author",
             model: User,

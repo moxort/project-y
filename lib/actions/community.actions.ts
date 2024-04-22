@@ -34,6 +34,7 @@ export async function createCommunity(
             createdBy: user._id, // Use the mongoose ID of the user
         });
 
+        console.log('EXECURED COMMUNITY CREATION')
         const createdCommunity = await newCommunity.save();
 
         user.communities.push(createdCommunity._id);
@@ -272,7 +273,7 @@ export async function deleteCommunity(communityId: string) {
         // delete all posts associated with the community
         await Post.deleteMany({ community: communityId });
 
-        // dind all users who are part of the community
+        // find all users who are part of the community
         const communityUsers = await User.find({ communities: communityId });
 
         // remove the community from the 'communities' array for each user

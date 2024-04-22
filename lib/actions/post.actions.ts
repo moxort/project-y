@@ -6,33 +6,13 @@ import User from "@/lib/models/user.model";
 import {revalidatePath} from "next/cache";
 import {Simulate} from "react-dom/test-utils";
 import error = Simulate.error;
+import Community from "@/lib/models/community.model";
 
 interface PostParams{
     text: string,
     author: string,
     communityId: string | null,
     path: string,
-}
-
-export async function createPost({ text, author, communityId, path }: PostParams){
-    try {
-        connectToDB();
-
-        const createdPost = await Post.create({
-            text,
-            author,
-            community:null,
-        });
-
-        await User.findByIdAndUpdate(author, {
-            $push: { posts: createdPost._id}
-        })
-
-        revalidatePath(path);
-    } catch (error: any){
-        throw new Error(`Failed to create post: ${error.message}`);
-    }
-
 }
 
 export async function fetchPosts(pageNumber = 1, pageSize = 20){
@@ -44,7 +24,13 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
         .sort({createdAt: 'desc'})
         .skip(skipAmount)
         .limit(pageSize)
-        .populate({path: 'author', model: User})
+        .populate({
+            path: 'author',
+            model: User})
+        .populate({
+            path: "community",
+            model: Community,
+        })
         .populate({
             path: 'children',
             populate: {
@@ -64,6 +50,53 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
 
 }
 
+export async function createPost({ text, author, communityId, path }: PostParams){
+    try {
+        connectToDB();
+
+        const communityIdObject = await Community.findOne(
+            { id: communityId },
+            { _id: 1 }
+        );
+
+        const createdPost = await Post.create({
+            text,
+            author,
+            community: communityIdObject, //communityId if provided, or leave it null for personal account
+        });
+
+        await User.findByIdAndUpdate(author, {
+            $push: { posts: createdPost._id}
+        })
+
+        if (communityIdObject){
+            //update community
+            await Community.findByIdAndUpdate(communityIdObject, {
+                $push: {posts: createdPost._id}
+            })
+        }
+
+        revalidatePath(path);
+    } catch (error: any){
+        throw new Error(`Failed to create post: ${error.message}`);
+    }
+
+}
+
+async function fetchAllChildPosts(postId: string): Promise<any[]> {
+    const childPosts = await Post.find({ parentId: postId });
+
+    const descendantPosts = [];
+    for (const childPost of childPosts) {
+        const descendants = await fetchAllChildPosts(childPost._id);
+        descendantPosts.push(childPost, ...descendants);
+    }
+
+    return descendantPosts;
+}
+
+
+
 export async function fetchPostById(postId: string) {
     connectToDB();
 
@@ -74,7 +107,11 @@ export async function fetchPostById(postId: string) {
                 model: User,
                 select: "_id id name image",
             })
-            // TODO add communities
+            .populate({
+                path: "community",
+                model: Community,
+                select: "_id id name image",
+            })
             .populate({
                 path: "children", // Populate the children field
                 populate: [
@@ -108,7 +145,6 @@ export async function addCommentToPost(postId: string, commentText: string, user
     
     try {
         const originalPost = await Post.findById(postId);
-        console.log(originalPost)
         if (!originalPost) {
             throw new Error("Post not found");
         }
@@ -129,5 +165,59 @@ export async function addCommentToPost(postId: string, commentText: string, user
         revalidatePath(path);
     } catch (e: any) {
         throw new Error(`Error adding comment to post: ${e.message}`)
+    }
+}
+
+export async function deletePost(id: string, path: string): Promise<void> {
+    try {
+        connectToDB();
+        const mainPost = await Post.findById(id).populate("author community");
+
+        if (!mainPost) {
+            throw new Error("Post not found");
+        }
+
+        // Fetch all child  posts  and their descendants recursively
+        const descendantPosts = await fetchAllChildPosts(id);
+
+        // Get all descendant post IDs including the main post ID and child post IDs
+        const descendantPostIds = [
+            id,
+            ...descendantPosts.map((thread) => thread._id),
+        ];
+
+        // Extract the authorIds and communityIds to update User and Community models respectively
+        const uniqueAuthorIds = new Set(
+            [
+                ...descendantPosts.map((post) => post.author?._id?.toString()), // Use optional chaining to handle possible undefined values
+                mainPost.author?._id?.toString(),
+            ].filter((id) => id !== undefined)
+        );
+
+        const uniqueCommunityIds = new Set(
+            [
+                ...descendantPosts.map((post) => post.community?._id?.toString()), // Use optional chaining to handle possible undefined values
+                mainPost.community?._id?.toString(),
+            ].filter((id) => id !== undefined)
+        );
+
+        // Recursively delete child posts and their descendants
+        await Post.deleteMany({ _id: { $in: descendantPostIds } });
+
+        // Update User model
+        await User.updateMany(
+            { _id: { $in: Array.from(uniqueAuthorIds) } },
+            { $pull: { threads: { $in: descendantPostIds } } }
+        );
+
+        // Update Community model
+        await Community.updateMany(
+            { _id: { $in: Array.from(uniqueCommunityIds) } },
+            { $pull: { posts: { $in: descendantPostIds } } }
+        );
+
+        revalidatePath(path);
+    } catch (error: any) {
+        throw new Error(`Failed to delete thread: ${error.message}`);
     }
 }

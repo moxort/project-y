@@ -59,13 +59,14 @@ export const POST = async (request: Request) => {
 
     const eventType: EventType = evnt?.type!;
 
+    console.log(evnt)
+
     // Listen organization creation event
     if (eventType === "organization.created") {
         // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/CreateOrganization
         // Show what evnt?.data sends from above resource
         const { id, name, slug, logo_url, image_url, created_by } =
         evnt?.data ?? {};
-
         try {
             // @ts-ignore
             await createCommunity(
