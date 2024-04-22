@@ -1,6 +1,7 @@
 import {fetchUserPosts} from "@/lib/actions/users.actions";
 import {redirect} from "next/navigation";
 import PostCard from "@/components/cards/PostCard";
+import {fetchCommunityPosts} from "@/lib/actions/community.actions";
 
 interface Result {
   name: string;
@@ -35,9 +36,14 @@ interface PostsTabParams {
 }
 
 async function PostsTabs({ currentUserId, accountId, accountType }: PostsTabParams) {
-  let result: Result;
+  let result: any;
 
+  if (accountType === 'Community') {
+    result = await fetchCommunityPosts(accountId);
+
+  } else{
     result = await fetchUserPosts(accountId);
+  }
 
     if(!result) redirect('/')
 
